@@ -11,7 +11,6 @@ class AppTheme {
         seedColor: AppColors.primary,
         primary:  AppColors.primary,
         secondary: AppColors.accent,
-        background: AppColors.background,
         error: AppColors.error
       ),
 
