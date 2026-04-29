@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'src/routes/app_routes.dart';
 import 'constants/app_theme.dart';
 
 void main() {
@@ -15,14 +16,8 @@ class FitGuideApp extends StatelessWidget {
       title: 'FitGuide',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'FitGuide',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
+      initialRoute: AppRoutes.splash,
+      routes: AppRoutes.routes,
     );
   }
 }
