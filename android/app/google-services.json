@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "809867489398",
+    "project_id": "fitguide-tfc",
+    "storage_bucket": "fitguide-tfc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:809867489398:android:b073386262e50ce17c6f57",
+        "android_client_info": {
+          "package_name": "com.example.tfc_fitguide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhtIM4VS53ExyTYtS7Xwa_BCrVeOM3P5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
