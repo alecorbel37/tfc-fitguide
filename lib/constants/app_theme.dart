@@ -31,13 +31,13 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white, 
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(double.infinity, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: const TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w600
           )
         )
@@ -46,14 +46,14 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
-          minimumSize: const Size(double.maxFinite, 52),
+          minimumSize: const Size(double.maxFinite, 48),
           side: const BorderSide(color: AppColors.primary, width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14)
           ),
           textStyle: const TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w600
           ),
         ),
