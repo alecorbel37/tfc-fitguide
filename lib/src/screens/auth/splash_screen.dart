@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tfc_fitguide/constants/app_colors.dart';
 import 'package:tfc_fitguide/src/routes/app_routes.dart';
+import '../../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -46,7 +47,15 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(seconds: 4), () { // Tiempo que dura la Splash Screen
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.welcome); // Navega a la pantalla de bienvenida sin poder volver a la de splash
+        final authService = AuthService();
+        if (authService.currentUser != null) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        } else {
+          Navigator.pushReplacementNamed(
+            context,
+            AppRoutes.welcome,
+          ); // Navega a la pantalla de bienvenida sin poder volver a la de splash
+        }
       }
     });
   }
@@ -71,7 +80,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildDecorations() { // Los 3 círculos decorativos
+  Widget _buildDecorations() {
+    // Los 3 círculos decorativos
     return Stack(
       children: [
         Positioned(
@@ -114,7 +124,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildContent() { // El contenido central: logo, nombre, tagline, línea naranja y subtítulo
+  Widget _buildContent() {
+    // El contenido central: logo, nombre, tagline, línea naranja y subtítulo
     return Center(
       child: FadeTransition(
         opacity: _fadeAnimation,
@@ -213,7 +224,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildBottomIndicator() { // La barra de carga y el texto
+  Widget _buildBottomIndicator() {
+    // La barra de carga y el texto
     return Positioned(
       bottom: 48,
       left: 0,
