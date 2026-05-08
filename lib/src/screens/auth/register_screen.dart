@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../routes/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
+import '../../services/user_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -56,10 +58,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       final authService = AuthService();
-      await authService.register(
+      final credential = await authService.register(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      if (credential != null) {
+        final userService = UserService();
+        final user = UserModel(
+          uid: credential.user!.uid,
+          nombre: _nombreController.text.trim(),
+          apellidos: _apellidosController.text.trim(),
+          email: _emailController.text.trim(),
+          objetivo: _selectedObjetivo ?? '',
+          altura: double.tryParse(_alturaController.text.trim()) ?? 0,
+          peso: double.tryParse(_pesoController.text.trim()) ?? 0,
+          createdAt: DateTime.now(),
+        );
+        await userService.saveUser(user);
+      }
+
       if (mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
