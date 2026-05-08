@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
 import '../../../constants/app_colors.dart';
+import '../../widgets/bottom_nav_bar.dart';
 import '../../models/food_model.dart';
+import '../../models/meal_log_model.dart';
+import '../../services/nutrition_service.dart';
 import '../../routes/app_routes.dart';
 
 class NutritionScreen extends StatefulWidget {
@@ -14,17 +16,68 @@ class NutritionScreen extends StatefulWidget {
 
 class _NutritionScreenState extends State<NutritionScreen> {
   DateTime _selectedDate = DateTime.now();
+  List<MealLogModel> _mealLogs = [];
+  bool _isLoading = false;
+  final NutritionService _nutritionService = NutritionService();
+
+  final List<Map<String, dynamic>> _mealTypes = [
+    {
+      'title': 'Desayuno',
+      'icon': Icons.wb_sunny_rounded,
+      'iconColor': AppColors.accent,
+      'iconBg': AppColors.iconBgOrange,
+    },
+    {
+      'title': 'Almuerzo',
+      'icon': Icons.lunch_dining_rounded,
+      'iconColor': AppColors.primary,
+      'iconBg': AppColors.iconBgGreen,
+    },
+    {
+      'title': 'Cena',
+      'icon': Icons.nightlight_round,
+      'iconColor': AppColors.primary,
+      'iconBg': AppColors.iconBgGreen,
+    },
+    {
+      'title': 'Snacks',
+      'icon': Icons.cookie_rounded,
+      'iconColor': AppColors.accent,
+      'iconBg': AppColors.iconBgOrange,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMealLogs();
+  }
+
+  Future<void> _loadMealLogs() async {
+    setState(() => _isLoading = true);
+    try {
+      final logs = await _nutritionService.getMealLogs(_selectedDate);
+      setState(() {
+        _mealLogs = logs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   void _previousDay() {
     setState(() {
       _selectedDate = _selectedDate.subtract(const Duration(days: 1));
     });
+    _loadMealLogs();
   }
 
   void _nextDay() {
     setState(() {
       _selectedDate = _selectedDate.add(const Duration(days: 1));
     });
+    _loadMealLogs();
   }
 
   String _formatDate(DateTime date) {
@@ -64,6 +117,18 @@ class _NutritionScreenState extends State<NutritionScreen> {
     return '$dayName, ${date.day} de $monthName';
   }
 
+  List<MealLogModel> _getLogsForMeal(String mealType) {
+    return _mealLogs.where((log) => log.mealType == mealType).toList();
+  }
+
+  double get _totalCalories =>
+      _mealLogs.fold(0, (sum, log) => sum + log.calories);
+
+  double get _totalProtein =>
+      _mealLogs.fold(0, (sum, log) => sum + log.protein);
+
+  double get _totalCarbs => _mealLogs.fold(0, (sum, log) => sum + log.carbs);
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -79,70 +144,27 @@ class _NutritionScreenState extends State<NutritionScreen> {
         children: [
           _buildHero(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                children: [
-                  _buildMealCard(
-                    title: 'Desayuno',
-                    icon: Icons.wb_sunny_rounded,
-                    iconColor: AppColors.accent,
-                    iconBg: AppColors.iconBgOrange,
-                    kcal: 480,
-                    items: [
-                      {
-                        'name': 'Avena con frutas',
-                        'info': '100g · 12g prot · 58g carbs',
-                        'kcal': 320,
-                      },
-                      {
-                        'name': 'Leche semidesnatada',
-                        'info': '200ml · 6g prot · 10g carbs',
-                        'kcal': 160,
-                      },
-                    ],
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    child: Column(
+                      children: _mealTypes.map((meal) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _buildMealCard(
+                            title: meal['title'] as String,
+                            icon: meal['icon'] as IconData,
+                            iconColor: meal['iconColor'] as Color,
+                            iconBg: meal['iconBg'] as Color,
+                            items: _getLogsForMeal(meal['title'] as String),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  _buildMealCard(
-                    title: 'Almuerzo',
-                    icon: Icons.lunch_dining_rounded,
-                    iconColor: AppColors.primary,
-                    iconBg: AppColors.iconBgGreen,
-                    kcal: 620,
-                    items: [
-                      {
-                        'name': 'Pechuga de pollo',
-                        'info': '150g · 46g prot · 0g carbos',
-                        'kcal': 248,
-                      },
-                      {
-                        'name': 'Arroz blanco cocido',
-                        'info': '180g · 5g prot · 52g carbos',
-                        'kcal': 234,
-                      },
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _buildMealCard(
-                    title: 'Cena',
-                    icon: Icons.nightlight_round,
-                    iconColor: AppColors.primary,
-                    iconBg: AppColors.iconBgGreen,
-                    kcal: 0,
-                    items: const [],
-                  ),
-                  const SizedBox(height: 10),
-                  _buildMealCard(
-                    title: 'Snacks',
-                    icon: Icons.cookie_rounded,
-                    iconColor: AppColors.accent,
-                    iconBg: AppColors.iconBgOrange,
-                    kcal: 0,
-                    items: const [],
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -257,13 +279,29 @@ class _NutritionScreenState extends State<NutritionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildMacroCol('1.450', 'Consumidas', 'kcal'),
+          _buildMacroCol(
+            _totalCalories.toStringAsFixed(0),
+            'Consumidas',
+            'kcal',
+          ),
           _buildMacroDivider(),
-          _buildMacroCol('760', 'Restantes', 'kcal'),
+          _buildMacroCol(
+            (2100 - _totalCalories).toStringAsFixed(0),
+            'Restantes',
+            'kcal',
+          ),
           _buildMacroDivider(),
-          _buildMacroCol('120g', 'Proteína', '/ 150g'),
+          _buildMacroCol(
+            '${_totalProtein.toStringAsFixed(0)}g',
+            'Proteína',
+            '/ 150g',
+          ),
           _buildMacroDivider(),
-          _buildMacroCol('180g', 'Carbos', '/ 220g'),
+          _buildMacroCol(
+            '${_totalCarbs.toStringAsFixed(0)}g',
+            'Carbos',
+            '/ 220g',
+          ),
         ],
       ),
     );
@@ -315,9 +353,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
     required IconData icon,
     required Color iconColor,
     required Color iconBg,
-    required int kcal,
-    required List<Map<String, dynamic>> items,
+    required List<MealLogModel> items,
   }) {
+    final mealCalories = items.fold(0.0, (sum, log) => sum + log.calories);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -326,20 +365,26 @@ class _NutritionScreenState extends State<NutritionScreen> {
       ),
       child: Column(
         children: [
-          _buildMealHeader(title, icon, iconColor, iconBg, kcal),
+          _buildMealHeader(
+            title: title,
+            icon: icon,
+            iconColor: iconColor,
+            iconBg: iconBg,
+            kcal: mealCalories,
+          ),
           if (items.isNotEmpty) ...items.map((item) => _buildFoodItem(item)),
         ],
       ),
     );
   }
 
-  Widget _buildMealHeader(
-    String title,
-    IconData icon,
-    Color iconColor,
-    Color iconBg,
-    int kcal,
-  ) {
+  Widget _buildMealHeader({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required double kcal,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -368,7 +413,9 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   ),
                 ),
                 Text(
-                  kcal > 0 ? '$kcal kcal' : 'Sin registrar',
+                  kcal > 0
+                      ? '${kcal.toStringAsFixed(0)} kcal'
+                      : 'Sin registrar',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
@@ -387,9 +434,29 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 AppRoutes.addFood,
                 arguments: title,
               );
-              if (result != null) {
-                // Aquí añadiremos el alimento a Firestore
-                debugPrint('Alimento añadido: ${(result as FoodModel).name}');
+              if (result != null && mounted) {
+                final food = result as FoodModel;
+                try {
+                  await _nutritionService.addMealLog(
+                    food: food,
+                    mealType: title,
+                    date: _selectedDate,
+                  );
+                  await _loadMealLogs();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: AppColors.error,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                }
               }
             },
             child: Container(
@@ -411,7 +478,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     );
   }
 
-  Widget _buildFoodItem(Map<String, dynamic> item) {
+  Widget _buildFoodItem(MealLogModel item) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
@@ -425,17 +492,19 @@ class _NutritionScreenState extends State<NutritionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name'] as String,
+                  item.foodName,
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF374151),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item['info'] as String,
+                  '${item.quantity.toStringAsFixed(0)}g · ${item.protein.toStringAsFixed(1)}g prot · ${item.carbs.toStringAsFixed(1)}g carbos',
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
@@ -445,13 +514,26 @@ class _NutritionScreenState extends State<NutritionScreen> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Text(
-            '${item['kcal']} kcal',
+            '${item.calories.toStringAsFixed(0)} kcal',
             style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppColors.accent,
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () async {
+              await _nutritionService.deleteMealLog(item.id);
+              await _loadMealLogs();
+            },
+            child: const Icon(
+              Icons.close_rounded,
+              color: AppColors.textHint,
+              size: 16,
             ),
           ),
         ],
