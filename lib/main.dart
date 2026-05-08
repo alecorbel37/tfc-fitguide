@@ -3,6 +3,8 @@ import 'src/routes/app_routes.dart';
 import 'constants/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:provider/provider.dart';
+import 'src/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,12 +19,15 @@ class FitGuideApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'FitGuide',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.splash,
-      routes: AppRoutes.routes,
+    return ChangeNotifierProvider(
+      create: (_) => UserProvider(),
+      child: MaterialApp(
+        title: 'FitGuide',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        initialRoute: AppRoutes.splash,
+        routes: AppRoutes.routes,
+      ),
     );
   }
 }

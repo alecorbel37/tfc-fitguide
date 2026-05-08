@@ -1,17 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
+import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
+import '../../widgets/bottom_nav_bar.dart';
+import '../../providers/user_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<UserProvider>().loadUser();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: AppColors.primary,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
       ),
     );
 
@@ -19,7 +34,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _buildHero(),
+          _buildHero(context),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -41,61 +56,78 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHero() {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -30,
-            right: -30,
-            child: Container(
-              width: 130,
-              height: 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
-              ),
+  Widget _buildHero(BuildContext context) {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final user = userProvider.user;
+        final nombre = user?.nombre ?? 'Usuario';
+
+        return Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(28),
+              bottomRight: Radius.circular(28),
             ),
           ),
-          Positioned(
-            bottom: -40,
-            left: -20,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.secondary.withValues(alpha: 0.08),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
+                ),
               ),
-            ),
-          ),
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Column(
-                children: [
-                  _buildGreeting(),
-                  const SizedBox(height: 16),
-                  _buildCalorieCard(),
-                ],
+              Positioned(
+                bottom: -40,
+                left: -20,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.secondary.withValues(alpha: 0.08),
+                  ),
+                ),
               ),
-            ),
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  child: Column(
+                    children: [
+                      _buildGreeting(nombre),
+                      const SizedBox(height: 16),
+                      _buildCalorieCard(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildGreeting() {
+  Widget _buildGreeting(String nombre) {
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = 'Buenos días';
+    } else if (hour < 20) {
+      greeting = 'Buenas tardes';
+    } else {
+      greeting = 'Buenas noches';
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -103,7 +135,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Buenos días',
+              greeting,
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
@@ -111,9 +143,9 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            const Text(
-              'Alexandra',
-              style: TextStyle(
+            Text(
+              nombre,
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -194,7 +226,7 @@ class HomeScreen extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               const Text(
-                '1.450',
+                '0',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 32,
@@ -218,7 +250,7 @@ class HomeScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
-              value: 0.69,
+              value: 0,
               backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
               minHeight: 6,
@@ -228,9 +260,9 @@ class HomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMacro('120g', 'Proteína', 0.80, AppColors.secondary),
-              _buildMacro('180g', 'Carbos', 0.82, AppColors.accent),
-              _buildMacro('50g', 'Grasas', 0.77, AppColors.secondary),
+              _buildMacro('0g', 'Proteína', 0, AppColors.secondary),
+              _buildMacro('0g', 'Carbos', 0, AppColors.accent),
+              _buildMacro('0g', 'Grasas', 0, AppColors.secondary),
             ],
           ),
         ],
@@ -475,21 +507,6 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildRecentActivity() {
-    final activities = [
-      {
-        'name': 'Desayuno registrado',
-        'time': 'Hace 2 horas',
-        'kcal': '480 kcal',
-        'icon': Icons.restaurant_menu_rounded,
-      },
-      {
-        'name': 'Entreno completado',
-        'time': 'Ayer · 45 min',
-        'kcal': '320 kcal',
-        'icon': Icons.fitness_center_rounded,
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -507,7 +524,7 @@ class HomeScreen extends StatelessWidget {
             ),
             Text(
               'Ver todo',
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -517,72 +534,45 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        ...activities.map((activity) => _buildActivityCard(activity)),
-      ],
-    );
-  }
-
-  Widget _buildActivityCard(Map<String, dynamic> activity) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.iconBgGreen,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              activity['icon'] as IconData,
-              color: AppColors.primary,
-              size: 16,
-            ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          child: Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  activity['name'] as String,
-                  style: const TextStyle(
+                Icon(
+                  Icons.history_rounded,
+                  color: AppColors.textHint,
+                  size: 32,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Sin actividad reciente',
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  activity['time'] as String,
-                  style: const TextStyle(
+                const SizedBox(height: 4),
+                const Text(
+                  'Empieza registrando tu primera comida o entrenamiento',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textHint,
                   ),
                 ),
               ],
             ),
           ),
-          Text(
-            activity['kcal'] as String,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.accent,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

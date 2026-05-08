@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tfc_fitguide/src/routes/app_routes.dart';
-import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
+import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
+import '../../widgets/bottom_nav_bar.dart';
+import '../../providers/user_provider.dart';
 import '../../services/auth_service.dart';
+import '../../routes/app_routes.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<UserProvider>().loadUser();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,30 +34,58 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          _buildHero(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                children: [
-                  _buildStatsGrid(),
-                  const SizedBox(height: 14),
-                  _buildProgressCard(),
-                  const SizedBox(height: 14),
-                  _buildMenuList(context),
-                ],
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          final user = userProvider.user;
+
+          if (userProvider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
+          }
+
+          final nombre = user?.nombre ?? 'Usuario';
+          final apellidos = user?.apellidos ?? '';
+          final objetivo = user?.objetivo ?? 'Sin objetivo';
+          final peso = user?.peso.toString() ?? '-';
+          final initials = nombre.isNotEmpty && apellidos.isNotEmpty
+              ? '${nombre[0]}${apellidos[0]}'.toUpperCase()
+              : nombre.isNotEmpty
+              ? nombre[0].toUpperCase()
+              : 'U';
+
+          return Column(
+            children: [
+              _buildHero(context, nombre, apellidos, objetivo, initials),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  child: Column(
+                    children: [
+                      _buildStatsGrid(peso),
+                      const SizedBox(height: 14),
+                      _buildProgressCard(),
+                      const SizedBox(height: 14),
+                      _buildMenuList(context),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 4),
     );
   }
 
-  Widget _buildHero(BuildContext context) {
+  Widget _buildHero(
+    BuildContext context,
+    String nombre,
+    String apellidos,
+    String objetivo,
+    String initials,
+  ) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -74,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildHeroTop(context),
                   const SizedBox(height: 20),
-                  _buildProfileInfo(),
+                  _buildProfileInfo(nombre, apellidos, objetivo, initials),
                 ],
               ),
             ),
@@ -118,7 +161,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileInfo() {
+  Widget _buildProfileInfo(
+    String nombre,
+    String apellidos,
+    String objetivo,
+    String initials,
+  ) {
     return Row(
       children: [
         Stack(
@@ -134,10 +182,10 @@ class ProfileScreen extends StatelessWidget {
                   width: 3,
                 ),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  'AC',
-                  style: TextStyle(
+                  initials,
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -171,9 +219,9 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Alexandra Cortés',
-                style: TextStyle(
+              Text(
+                '$nombre $apellidos',
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -182,7 +230,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               Text(
-                'Objetivo: Ganar masa muscular',
+                'Objetivo: $objetivo',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -230,12 +278,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(String peso) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
-            value: '68.5',
+            value: peso,
             label: 'Peso actual (kg)',
             valueColor: AppColors.primary,
           ),
@@ -243,7 +291,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildStatCard(
-            value: '5',
+            value: '0',
             label: 'Racha de días',
             valueColor: AppColors.accent,
           ),
@@ -251,7 +299,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _buildStatCard(
-            value: '23.1',
+            value: '-',
             label: 'IMC actual',
             valueColor: AppColors.primary,
           ),
@@ -299,16 +347,6 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProgressCard() {
-    final List<Map<String, dynamic>> weightData = [
-      {'value': 70.2, 'height': 40.0},
-      {'value': 70.0, 'height': 44.0},
-      {'value': 69.5, 'height': 38.0},
-      {'value': 69.8, 'height': 50.0},
-      {'value': 69.2, 'height': 35.0},
-      {'value': 68.8, 'height': 42.0},
-      {'value': 68.5, 'height': 30.0},
-    ];
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -330,9 +368,9 @@ class ProfileScreen extends StatelessWidget {
                   color: Color(0xFF374151),
                 ),
               ),
-              Text(
+              const Text(
                 'Ver detalle',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -342,51 +380,28 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 100,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: weightData.asMap().entries.map((entry) {
-                final isLast = entry.key == weightData.length - 1;
-                final item = entry.value;
-
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          height: item['height'] as double,
-                          decoration: BoxDecoration(
-                            color: isLast
-                                ? AppColors.primary
-                                : AppColors.iconBgGreen,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(4),
-                              topRight: Radius.circular(4),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${item['value']}',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 9,
-                            color: isLast
-                                ? AppColors.primary
-                                : AppColors.textHint,
-                            fontWeight: isLast
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                        ),
-                      ],
+          Container(
+            height: 80,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.show_chart_rounded,
+                    color: AppColors.textHint,
+                    size: 28,
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Sin datos de peso registrados',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      color: AppColors.textHint,
                     ),
                   ),
-                );
-              }).toList(),
+                ],
+              ),
             ),
           ),
         ],
@@ -519,6 +534,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              context.read<UserProvider>().clearUser();
               final authService = AuthService();
               await authService.logout();
               if (context.mounted) {
