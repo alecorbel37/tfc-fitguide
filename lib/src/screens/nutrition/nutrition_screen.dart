@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
 import '../../../constants/app_colors.dart';
+import '../../models/food_model.dart';
+import '../../routes/app_routes.dart';
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -34,12 +36,27 @@ class _NutritionScreenState extends State<NutritionScreen> {
     if (selected == today.subtract(const Duration(days: 1))) return 'Ayer';
 
     final months = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
     final days = [
-      'Lunes', 'Martes', 'Miércoles', 'Jueves',
-      'Viernes', 'Sábado', 'Domingo'
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo',
     ];
 
     final dayName = days[date.weekday - 1];
@@ -73,8 +90,16 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     iconBg: AppColors.iconBgOrange,
                     kcal: 480,
                     items: [
-                      {'name': 'Avena con frutas', 'info': '100g · 12g prot · 58g carbs', 'kcal': 320},
-                      {'name': 'Leche semidesnatada', 'info': '200ml · 6g prot · 10g carbs', 'kcal': 160},
+                      {
+                        'name': 'Avena con frutas',
+                        'info': '100g · 12g prot · 58g carbs',
+                        'kcal': 320,
+                      },
+                      {
+                        'name': 'Leche semidesnatada',
+                        'info': '200ml · 6g prot · 10g carbs',
+                        'kcal': 160,
+                      },
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -85,8 +110,16 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     iconBg: AppColors.iconBgGreen,
                     kcal: 620,
                     items: [
-                      {'name': 'Pechuga de pollo', 'info': '150g · 46g prot · 0g carbos', 'kcal': 248},
-                      {'name': 'Arroz blanco cocido', 'info': '180g · 5g prot · 52g carbos', 'kcal': 234},
+                      {
+                        'name': 'Pechuga de pollo',
+                        'info': '150g · 46g prot · 0g carbos',
+                        'kcal': 248,
+                      },
+                      {
+                        'name': 'Arroz blanco cocido',
+                        'info': '180g · 5g prot · 52g carbos',
+                        'kcal': 234,
+                      },
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -219,9 +252,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -296,8 +327,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
       child: Column(
         children: [
           _buildMealHeader(title, icon, iconColor, iconBg, kcal),
-          if (items.isNotEmpty)
-            ...items.map((item) => _buildFoodItem(item)),
+          if (items.isNotEmpty) ...items.map((item) => _buildFoodItem(item)),
         ],
       ),
     );
@@ -350,17 +380,30 @@ class _NutritionScreenState extends State<NutritionScreen> {
               ],
             ),
           ),
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.add_rounded,
-              color: Colors.white,
-              size: 16,
+          GestureDetector(
+            onTap: () async {
+              final result = await Navigator.pushNamed(
+                context,
+                AppRoutes.addFood,
+                arguments: title,
+              );
+              if (result != null) {
+                // Aquí añadiremos el alimento a Firestore
+                debugPrint('Alimento añadido: ${(result as FoodModel).name}');
+              }
+            },
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
             ),
           ),
         ],
@@ -372,9 +415,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Color(0xFFF5F5F5)),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFF5F5F5))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

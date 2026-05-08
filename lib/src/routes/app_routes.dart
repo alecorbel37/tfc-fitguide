@@ -8,6 +8,7 @@ import '../screens/nutrition/nutrition_screen.dart';
 import '../screens/training/training_screen.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/nutrition/add_food_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String training = '/training';
   static const String chat = '/chat';
   static const String profile = '/profile';
+  static const String addFood = '/add-food';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -31,6 +33,10 @@ class AppRoutes {
       training: (context) => const TrainingScreen(),
       chat: (context) => const ChatScreen(),
       profile: (context) => const ProfileScreen(),
+      AppRoutes.addFood: (context) {
+        final args = ModalRoute.of(context)!.settings.arguments as String?;
+        return AddFoodScreen(mealType: args ?? 'Comida');
+      },
     };
   }
 }
