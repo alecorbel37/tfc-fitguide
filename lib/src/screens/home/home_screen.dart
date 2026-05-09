@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../providers/user_provider.dart';
+import '../../services/nutrition_service.dart';
+import '../../models/meal_log_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,13 +15,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<MealLogModel> _todayLogs = [];
+  final NutritionService _nutritionService = NutritionService();
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       context.read<UserProvider>().loadUser();
+      _loadTodayNutrition();
     });
   }
+
+  // Método para actualizar los datos de la nutrición a la pantalla Home
+  Future<void> _loadTodayNutrition() async {
+    try {
+      final logs = await _nutritionService.getMealLogs(DateTime.now());
+      setState(() => _todayLogs = logs);
+    } catch (e) {
+      debugPrint('Error cargando nutrición: $e');
+    }
+  }
+
+  // Getters para obtener las calorias y los macronutrientes
+  double get _totalCalories =>
+      _todayLogs.fold(0, (sum, log) => sum + log.calories);
+
+  double get _totalProtein =>
+      _todayLogs.fold(0, (sum, log) => sum + log.protein);
+
+  double get _totalCarbs => _todayLogs.fold(0, (sum, log) => sum + log.carbs);
+
+  double get _totalFat => _todayLogs.fold(0, (sum, log) => sum + log.fat);
 
   @override
   Widget build(BuildContext context) {
@@ -36,17 +63,27 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildHero(context),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildQuickActions(context),
-                  const SizedBox(height: 14),
-                  _buildTodayWorkout(),
-                  const SizedBox(height: 14),
-                  _buildRecentActivity(),
-                ],
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                await _loadTodayNutrition();
+                if (mounted) {
+                  context.read<UserProvider>().loadUser();
+                }
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildQuickActions(context),
+                    const SizedBox(height: 14),
+                    _buildTodayWorkout(),
+                    const SizedBox(height: 14),
+                    _buildRecentActivity(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -189,6 +226,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCalorieCard() {
+    const double calorieGoal = 2100;
+    final progress = (_totalCalories / calorieGoal).clamp(0.0, 1.0);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -211,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                'Meta: 2.100 kcal',
+                'Meta: ${calorieGoal.toStringAsFixed(0)} kcal',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
@@ -225,9 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              const Text(
-                '0',
-                style: TextStyle(
+              Text(
+                _totalCalories.toStringAsFixed(0),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
@@ -250,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
-              value: 0,
+              value: progress,
               backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
               minHeight: 6,
@@ -260,9 +300,24 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMacro('0g', 'Proteína', 0, AppColors.secondary),
-              _buildMacro('0g', 'Carbos', 0, AppColors.accent),
-              _buildMacro('0g', 'Grasas', 0, AppColors.secondary),
+              _buildMacro(
+                '${_totalProtein.toStringAsFixed(0)}g',
+                'Proteína',
+                (_totalProtein / 150).clamp(0.0, 1.0),
+                AppColors.secondary,
+              ),
+              _buildMacro(
+                '${_totalCarbs.toStringAsFixed(0)}g',
+                'Carbos',
+                (_totalCarbs / 220).clamp(0.0, 1.0),
+                AppColors.accent,
+              ),
+              _buildMacro(
+                '${_totalFat.toStringAsFixed(0)}g',
+                'Grasas',
+                (_totalFat / 65).clamp(0.0, 1.0),
+                AppColors.secondary,
+              ),
             ],
           ),
         ],
