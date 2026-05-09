@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
 import '../../../constants/app_colors.dart';
+import '../../widgets/bottom_nav_bar.dart';
+import '../../services/chat_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/message_models.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -13,66 +16,30 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  int _selectedExpert = 1;
+  final ChatService _chatService = ChatService();
+  final AuthService _authService = AuthService();
+  int _selectedExpert = 0;
 
   final List<Map<String, dynamic>> _experts = [
     {
-      'id': 0,
+      'id': 'expert_nutritionist',
       'name': 'María García',
       'role': 'Nutricionista',
       'college': 'Col. 12345',
       'initials': 'MG',
       'color': AppColors.primary,
       'isOnline': true,
-      'lastMessage': 'Revisa tu plan actualizado...',
-      'lastTime': '10:30',
-      'unread': 2,
     },
     {
-      'id': 1,
+      'id': 'expert_trainer',
       'name': 'Javier Ruiz',
       'role': 'Entrenador Personal',
       'college': 'Col. 67890',
       'initials': 'JR',
       'color': AppColors.accent,
       'isOnline': true,
-      'lastMessage': 'Perfecto, mañana empezamos...',
-      'lastTime': 'Ayer',
-      'unread': 0,
     },
   ];
-
-  final Map<int, List<Map<String, dynamic>>> _messages = {
-    0: [
-      {
-        'text': 'Hola Alexandra, he actualizado tu plan nutricional. Revísalo cuando puedas.',
-        'isSent': false,
-        'time': '10:28',
-      },
-      {
-        'text': 'He aumentado las proteínas a 150g diarios para apoyar tu objetivo.',
-        'isSent': false,
-        'time': '10:29',
-      },
-    ],
-    1: [
-      {
-        'text': 'Hola Alexandra, he revisado tu rutina. Para tren superior te recomiendo aumentar el peso esta semana.',
-        'isSent': false,
-        'time': '10:15',
-      },
-      {
-        'text': 'Perfecto Javier, ¿cuánto peso me recomiendas añadir en press de banca?',
-        'isSent': true,
-        'time': '10:22',
-      },
-      {
-        'text': 'Prueba con 62.5kg, deberías poder hacer 10 reps limpias.',
-        'isSent': false,
-        'time': '10:28',
-      },
-    ],
-  };
 
   @override
   void dispose() {
@@ -81,33 +48,41 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages[_selectedExpert]!.add({
-        'text': text,
-        'isSent': true,
-        'time': _getCurrentTime(),
-      });
-      _messageController.clear();
-    });
+    _messageController.clear();
 
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+    try {
+      await _chatService.sendMessage(
+        receiverId: _experts[_selectedExpert]['id'] as String,
+        text: text,
+      );
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
       }
-    });
-  }
-
-  String _getCurrentTime() {
-    final now = DateTime.now();
-    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    }
   }
 
   @override
@@ -215,18 +190,19 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          ...(_experts.map((expert) => _buildExpertCard(expert))),
+          ...(_experts.asMap().entries.map(
+            (entry) => _buildExpertCard(entry.key, entry.value),
+          )),
         ],
       ),
     );
   }
 
-  Widget _buildExpertCard(Map<String, dynamic> expert) {
-    final bool isSelected = _selectedExpert == expert['id'];
-    final bool hasUnread = (expert['unread'] as int) > 0;
+  Widget _buildExpertCard(int index, Map<String, dynamic> expert) {
+    final bool isSelected = _selectedExpert == index;
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedExpert = expert['id'] as int),
+      onTap: () => setState(() => _selectedExpert = index),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
@@ -235,12 +211,8 @@ class _ChatScreenState extends State<ChatScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border(
             left: BorderSide(
-              color: isSelected
-                  ? AppColors.accent
-                  : hasUnread
-                      ? AppColors.primary
-                      : Colors.transparent,
-              width: isSelected ? 2 : 3,
+              color: isSelected ? AppColors.accent : Colors.transparent,
+              width: 3,
             ),
             top: BorderSide(color: AppColors.border),
             right: BorderSide(color: AppColors.border),
@@ -278,60 +250,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    expert['lastMessage'] as String,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12,
-                      fontWeight: hasUnread
-                          ? FontWeight.w500
-                          : FontWeight.w400,
-                      color: hasUnread
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  expert['lastTime'] as String,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 11,
-                    color: AppColors.textHint,
-                  ),
-                ),
-                if (hasUnread) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${expert['unread']}',
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
             ),
           ],
         ),
@@ -389,31 +309,88 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessages() {
-    final messages = _messages[_selectedExpert] ?? [];
+    final expertId = _experts[_selectedExpert]['id'] as String;
+    final currentUserId = _authService.currentUser?.uid ?? '';
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return _buildMessageBubble(message);
+    return StreamBuilder<List<MessageModel>>(
+      stream: _chatService.getMessages(expertId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        final messages = snapshot.data ?? [];
+
+        if (messages.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: AppColors.textHint,
+                  size: 40,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Sin mensajes todavía',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Envía un mensaje para empezar',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    color: AppColors.textHint,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(
+              _scrollController.position.maxScrollExtent,
+            );
+          }
+        });
+
+        return ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[index];
+            final isSent = message.senderId == currentUserId;
+            return _buildMessageBubble(message, isSent);
+          },
+        );
       },
     );
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> message) {
-    final bool isSent = message['isSent'] as bool;
-
+  Widget _buildMessageBubble(MessageModel message, bool isSent) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment:
-            isSent ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isSent
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           Column(
-            crossAxisAlignment:
-                isSent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment: isSent
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               Container(
                 constraints: BoxConstraints(
@@ -433,7 +410,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 child: Text(
-                  message['text'] as String,
+                  message.text,
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -444,7 +421,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               const SizedBox(height: 3),
               Text(
-                message['time'] as String,
+                '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 10,
@@ -465,9 +442,7 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.border),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -551,10 +526,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Container(
           width: size,
           height: size,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           child: Center(
             child: Text(
               initials,

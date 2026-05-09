@@ -1,0 +1,39 @@
+class MessageModel {
+  final String id;
+  final String senderId;
+  final String receiverId;
+  final String text;
+  final DateTime timestamp;
+  final bool isRead;
+
+  MessageModel({
+    required this.id,
+    required this.senderId,
+    required this.receiverId,
+    required this.text,
+    required this.timestamp,
+    required this.isRead,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'senderId': senderId,
+      'receiverId': receiverId,
+      'text': text,
+      'timestamp': timestamp.toIso8601String(),
+      'isRead': isRead,
+    };
+  }
+
+  factory MessageModel.fromMap(Map<String, dynamic> map) {
+    return MessageModel(
+      id: map['id'] as String,
+      senderId: map['senderId'] as String,
+      receiverId: map['receiverId'] as String,
+      text: map['text'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      isRead: map['isRead'] as bool? ?? false,
+    );
+  }
+}
