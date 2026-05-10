@@ -17,8 +17,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
     'Todos',
     'Fuerza',
     'Cardio',
-    'Movilidad',
-    'Flexibilidad',
+    'Movilidad y Flexibilidad',
   ];
 
   final List<Map<String, dynamic>> _routines = [
@@ -69,7 +68,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
       'exercises': 10,
       'level': 'Principiante',
       'muscles': ['Cuerpo completo'],
-      'category': 'Movilidad',
+      'category': 'Movilidad y Flexibilidad',
       'isToday': false,
     },
   ];
