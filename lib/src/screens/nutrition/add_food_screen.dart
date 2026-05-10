@@ -7,10 +7,7 @@ import '../../services/food_service.dart';
 class AddFoodScreen extends StatefulWidget {
   final String mealType;
 
-  const AddFoodScreen({
-    super.key,
-    required this.mealType,
-  });
+  const AddFoodScreen({super.key, required this.mealType});
 
   @override
   State<AddFoodScreen> createState() => _AddFoodScreenState();
@@ -70,8 +67,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
     });
   }
 
-  FoodModel? get _foodWithQuantity =>
-      _selectedFood?.withQuantity(_quantity);
+  FoodModel? get _foodWithQuantity => _selectedFood?.withQuantity(_quantity);
 
   @override
   Widget build(BuildContext context) {
@@ -261,10 +257,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
           final isFirst = entry.key == 0;
           return Container(
             margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 6,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: isFirst ? AppColors.primary : AppColors.white,
               borderRadius: BorderRadius.circular(20),
@@ -353,11 +346,41 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
   Widget _buildPopularFoods() {
     final popular = [
-      {'name': 'Pechuga de pollo', 'cal': 165, 'protein': 31},
-      {'name': 'Arroz blanco cocido', 'cal': 130, 'protein': 2.7},
-      {'name': 'Huevo entero', 'cal': 155, 'protein': 13},
-      {'name': 'Aguacate', 'cal': 160, 'protein': 2},
-      {'name': 'Avena', 'cal': 389, 'protein': 17},
+      {
+        'name': 'Pechuga de pollo',
+        'calories': 165.0,
+        'protein': 31.0,
+        'carbs': 0.0,
+        'fat': 3.6,
+      },
+      {
+        'name': 'Arroz blanco cocido',
+        'calories': 130.0,
+        'protein': 2.7,
+        'carbs': 28.0,
+        'fat': 0.3,
+      },
+      {
+        'name': 'Huevo entero',
+        'calories': 155.0,
+        'protein': 13.0,
+        'carbs': 1.1,
+        'fat': 11.0,
+      },
+      {
+        'name': 'Aguacate',
+        'calories': 160.0,
+        'protein': 2.0,
+        'carbs': 9.0,
+        'fat': 15.0,
+      },
+      {
+        'name': 'Avena',
+        'calories': 389.0,
+        'protein': 17.0,
+        'carbs': 66.0,
+        'fat': 7.0,
+      },
     ];
 
     return Column(
@@ -373,16 +396,30 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        ...popular.map((food) => Container(
+        ...popular.map((food) {
+          final foodModel = FoodModel(
+            id: food['name'] as String,
+            name: food['name'] as String,
+            calories: food['calories'] as double,
+            protein: food['protein'] as double,
+            carbs: food['carbs'] as double,
+            fat: food['fat'] as double,
+            servingSize: '100g',
+          );
+          final isSelected = _selectedFood?.id == foodModel.id;
+
+          return GestureDetector(
+            onTap: () => _selectFood(foodModel),
+            child: Container(
               margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.border,
+                  width: isSelected ? 1.5 : 1,
+                ),
               ),
               child: Row(
                 children: [
@@ -412,7 +449,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                     ),
                   ),
                   Text(
-                    '${food['cal']} kcal',
+                    '${food['calories']} kcal',
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
@@ -425,18 +462,22 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: AppColors.iconBgGreen,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.iconBgGreen,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.add_rounded,
-                      color: AppColors.primary,
+                    child: Icon(
+                      isSelected ? Icons.check_rounded : Icons.add_rounded,
+                      color: isSelected ? Colors.white : AppColors.primary,
                       size: 16,
                     ),
                   ),
                 ],
               ),
-            )),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -448,10 +489,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
       onTap: () => _selectFood(food),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(14),
@@ -666,10 +704,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
           ),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(10),
@@ -740,9 +775,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
           onPressed: () {
             Navigator.pop(context, food);
           },
-          child: Text(
-            'Confirmar · ${food.calories.toStringAsFixed(0)} kcal',
-          ),
+          child: Text('Confirmar · ${food.calories.toStringAsFixed(0)} kcal'),
         ),
       ),
     );
