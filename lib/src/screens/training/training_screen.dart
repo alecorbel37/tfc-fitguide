@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
 import '../../../constants/app_colors.dart';
+import '../../providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class TrainingScreen extends StatefulWidget {
   const TrainingScreen({super.key});
@@ -80,11 +82,29 @@ class _TrainingScreenState extends State<TrainingScreen> {
         .toList();
   }
 
-  Map<String, dynamic> get _todayRoutine =>
-      _routines.firstWhere((r) => r['isToday'] == true);
+  // Para que la rutina de hoy dependa del objetivo del usuario
+  Map<String, dynamic> _getTodayRoutine(String? objetivo) {
+    switch (objetivo) {
+      case 'Perder peso':
+        return _routines.firstWhere((r) => r['category'] == 'Cardio');
+      case 'Ganar masa muscular':
+        return _routines.firstWhere((r) => r['category'] == 'Fuerza');
+      case 'Mejorar la salud':
+        return _routines.firstWhere(
+          (r) => r['category'] == 'Movilidad y Flexibilidad',
+          orElse: () => _routines.first,
+        );
+      default:
+        return _routines.first;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+    final objetivo = userProvider.user?.objetivo;
+    final todayRoutine = _getTodayRoutine(objetivo);
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: AppColors.primary,
@@ -105,7 +125,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                 children: [
                   _buildSectionHeader('Rutina de hoy', 'Ver plan completo'),
                   const SizedBox(height: 10),
-                  _buildFeaturedRoutine(_todayRoutine),
+                  _buildFeaturedRoutine(todayRoutine),
                   const SizedBox(height: 14),
                   _buildSectionHeader('Otras rutinas', null),
                   const SizedBox(height: 10),
@@ -209,17 +229,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
           decoration: BoxDecoration(
             color: AppColors.accent.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.accent.withValues(alpha: 0.4),
-            ),
+            border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.bolt_rounded,
-                color: AppColors.accent,
-                size: 14,
-              ),
+              const Icon(Icons.bolt_rounded, color: AppColors.accent, size: 14),
               const SizedBox(width: 4),
               const Text(
                 '5',
@@ -259,10 +273,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
             onTap: () => setState(() => _selectedFilter = index),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 color: isActive
                     ? Colors.white
@@ -528,10 +539,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
           Container(
             width: 7,
             height: 7,
-            decoration: BoxDecoration(
-              color: textColor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: textColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 4),
           Text(
