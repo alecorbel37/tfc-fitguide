@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:tfc_fitguide/constants/app_colors.dart';
 import 'package:tfc_fitguide/src/routes/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,7 +50,21 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         final authService = AuthService();
         if (authService.currentUser != null) {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          final userService = UserService();
+          userService.getUser(authService.currentUser!.uid).then((userProfile) {
+            if (mounted) {
+              if (userProfile != null) {
+                Navigator.pushReplacementNamed(context, AppRoutes.home);
+              } else {
+                // Si está autenticado pero no tiene perfil (ej. cerró la app tras login Google)
+                Navigator.pushReplacementNamed(
+                  context, 
+                  AppRoutes.register, 
+                  arguments: authService.currentUser
+                );
+              }
+            }
+          });
         } else {
           Navigator.pushReplacementNamed(
             context,

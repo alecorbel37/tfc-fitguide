@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../routes/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -372,7 +373,44 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 48,
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () async {
+          try {
+            final authService = AuthService();
+            final result = await authService.signInWithGoogle();
+            if (result != null && context.mounted) {
+              final userService = UserService();
+              final userProfile = await userService.getUser(result.user!.uid);
+              
+              if (mounted) {
+                if (userProfile != null) {
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                } else {
+                  Navigator.pushNamed(
+                    context, 
+                    AppRoutes.register, 
+                    arguments: result.user
+                  );
+                }
+              }
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    e.toString(),
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          }
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE0E0E0)),
           foregroundColor: AppColors.textPrimary,

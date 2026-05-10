@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../routes/app_routes.dart';
 import '../../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 
@@ -25,6 +26,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   int _currentStep = 1;
   String? _selectedObjetivo;
+  bool _isSocialLogin = false;
+  String? _socialUid;
 
   final List<String> _objetivos = [
     'Perder peso',
@@ -32,6 +35,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Mejorar la salud',
     'Mantener el peso',
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is firebase_auth.User && !_isSocialLogin) {
+      _isSocialLogin = true;
+      _socialUid = args.uid;
+      _emailController.text = args.email ?? '';
+
+      // Intentamos separar nombre y apellidos del displayName de Google
+      final String displayName = args.displayName ?? '';
+      if (displayName.isNotEmpty) {
+        final parts = displayName.split(' ');
+        _nombreController.text = parts[0];
+        if (parts.length > 1) {
+          _apellidosController.text = parts.sublist(1).join(' ');
+        }
+      }
+
+      _currentStep = 2; // Saltamos directamente al paso de datos físicos
+    }
+  }
 
   @override
   void dispose() {
@@ -58,15 +84,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       final authService = AuthService();
-      final credential = await authService.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      String? uid = _socialUid;
 
-      if (credential != null) {
+      if (!_isSocialLogin) {
+        final credential = await authService.register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        uid = credential?.user?.uid;
+      }
+
+      if (uid != null) {
         final userService = UserService();
         final user = UserModel(
-          uid: credential.user!.uid,
+          uid: uid,
           nombre: _nombreController.text.trim(),
           apellidos: _apellidosController.text.trim(),
           email: _emailController.text.trim(),

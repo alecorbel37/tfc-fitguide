@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../routes/app_routes.dart';
+import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -309,9 +311,47 @@ class WelcomeScreen extends StatelessWidget {
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
-          height: 44,
+          height: 48,
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () async {
+              try {
+                final authService = AuthService();
+                final result = await authService.signInWithGoogle();
+                if (result != null && context.mounted) {
+                  final userService = UserService();
+                  final userProfile = await userService.getUser(result.user!.uid);
+                  
+                  if (context.mounted) {
+                    if (userProfile != null) {
+                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    } else {
+                      // Si no tiene perfil, lo mandamos a registrarse (paso 2)
+                      Navigator.pushNamed(
+                        context, 
+                        AppRoutes.register, 
+                        arguments: result.user
+                      );
+                    }
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        e.toString(),
+                        style: const TextStyle(fontFamily: 'Poppins'),
+                      ),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Color(0xFFE0E0E0)),
               foregroundColor: AppColors.textPrimary,
@@ -334,7 +374,7 @@ class WelcomeScreen extends StatelessWidget {
                   'Continuar con Google',
                   style: TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
