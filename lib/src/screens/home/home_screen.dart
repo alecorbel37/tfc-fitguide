@@ -50,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: AppColors.primary,
@@ -58,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHero(context),
@@ -363,16 +363,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Acciones rápidas',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 10),
@@ -382,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildQuickCard(
                 icon: Icons.restaurant_menu_rounded,
                 label: 'Añadir\ncomida',
-                bgColor: AppColors.iconBgGreen,
+                bgColor: isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen,
                 iconColor: AppColors.primary,
                 onTap: () {},
               ),
@@ -392,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildQuickCard(
                 icon: Icons.fitness_center_rounded,
                 label: 'Entreno\nde hoy',
-                bgColor: AppColors.iconBgOrange,
+                bgColor: isDark ? AppColors.accent.withValues(alpha: 0.15) : AppColors.iconBgOrange,
                 iconColor: AppColors.accent,
                 onTap: () {},
               ),
@@ -402,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildQuickCard(
                 icon: Icons.show_chart_rounded,
                 label: 'Mi\nprogreso',
-                bgColor: AppColors.iconBgGreen,
+                bgColor: isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen,
                 iconColor: AppColors.primary,
                 onTap: () {},
               ),
@@ -420,14 +423,16 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color iconColor,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: theme.dividerColor),
         ),
         child: Column(
           children: [
@@ -444,11 +449,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
                 height: 1.3,
               ),
             ),
@@ -459,23 +464,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTodayWorkout() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Entrenamiento de hoy',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.accent, width: 2),
           ),
@@ -485,22 +492,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Fuerza Tren Superior',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       '45 min · 8 ejercicios',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -510,7 +517,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.iconBgGreen,
+                        color: theme.brightness == Brightness.dark
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : AppColors.iconBgGreen,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -562,19 +571,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildRecentActivity() {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Actividad reciente',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             Text(
@@ -592,35 +603,35 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: theme.dividerColor),
           ),
           child: Center(
             child: Column(
               children: [
                 Icon(
                   Icons.history_rounded,
-                  color: AppColors.textHint,
+                  color: theme.hintColor,
                   size: 32,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Sin actividad reciente',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Empieza registrando tu primera comida o entrenamiento',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
-                    color: AppColors.textHint,
+                    color: theme.hintColor,
                   ),
                 ),
               ],

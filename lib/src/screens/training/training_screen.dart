@@ -113,7 +113,6 @@ class _TrainingScreenState extends State<TrainingScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHero(),
@@ -299,16 +298,18 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Widget _buildSectionHeader(String title, String? link) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         if (link != null)
@@ -326,10 +327,12 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Widget _buildFeaturedRoutine(Map<String, dynamic> routine) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.accent, width: 2),
       ),
@@ -363,20 +366,20 @@ class _TrainingScreenState extends State<TrainingScreen> {
           const SizedBox(height: 10),
           Text(
             routine['name'] as String,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '${routine['duration']} min · ${routine['exercises']} ejercicios',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
@@ -420,13 +423,15 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Widget _buildRoutineCard(Map<String, dynamic> routine) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Row(
         children: [
@@ -436,20 +441,20 @@ class _TrainingScreenState extends State<TrainingScreen> {
               children: [
                 Text(
                   routine['name'] as String,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   '${routine['duration']} min · ${routine['exercises']} ejercicios',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -473,9 +478,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: theme.scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: theme.dividerColor),
                 ),
                 child: const Icon(
                   Icons.play_arrow_rounded,
@@ -491,10 +496,12 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Widget _buildMuscleTag(String muscle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.iconBgGreen,
+        color: isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -510,20 +517,21 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   Widget _buildLevelBadge(String level) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor;
     Color textColor;
 
     switch (level) {
       case 'Avanzado':
-        bgColor = AppColors.iconBgOrange;
+        bgColor = isDark ? AppColors.accent.withValues(alpha: 0.15) : AppColors.iconBgOrange;
         textColor = AppColors.accent;
         break;
       case 'Principiante':
-        bgColor = AppColors.iconBgGreen;
+        bgColor = isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen;
         textColor = AppColors.primary;
         break;
       default:
-        bgColor = AppColors.iconBgGreen;
+        bgColor = isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen;
         textColor = AppColors.primary;
     }
 

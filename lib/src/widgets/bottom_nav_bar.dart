@@ -9,11 +9,13 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: AppColors.border, width: 1),
+          top: BorderSide(color: theme.dividerColor, width: 1),
         ),
       ),
       child: SafeArea( // Para evitar que la barra quede tapada por la barra de gestos de Android
@@ -71,6 +73,7 @@ class BottomNavBar extends StatelessWidget {
     required String label,
     required String route,
   }) {
+    final theme = Theme.of(context);
     final bool isActive = currentIndex == index;
 
     return GestureDetector(
@@ -88,7 +91,7 @@ class BottomNavBar extends StatelessWidget {
             Icon(
               icon,
               size: 22,
-              color: isActive ? AppColors.primary : AppColors.textHint,
+              color: isActive ? AppColors.primary : theme.hintColor,
             ),
             const SizedBox(height: 3),
             Text(
@@ -97,7 +100,7 @@ class BottomNavBar extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? AppColors.primary : AppColors.textHint,
+                color: isActive ? AppColors.primary : theme.hintColor,
               ),
             ),
           ],

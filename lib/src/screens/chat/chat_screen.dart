@@ -95,7 +95,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHero(),
@@ -175,18 +174,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildExpertList() {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Tus expertos',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 10),
@@ -199,6 +200,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildExpertCard(int index, Map<String, dynamic> expert) {
+    final theme = Theme.of(context);
     final bool isSelected = _selectedExpert == index;
 
     return GestureDetector(
@@ -207,10 +209,10 @@ class _ChatScreenState extends State<ChatScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.accent : AppColors.border,
+            color: isSelected ? AppColors.accent : theme.dividerColor,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -229,20 +231,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Text(
                     expert['name'] as String,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '${expert['role']} · ${expert['college']}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -254,7 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         decoration: BoxDecoration(
                           color: expert['isOnline'] as bool
                               ? AppColors.online
-                              : AppColors.textHint,
+                              : theme.hintColor,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -268,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           fontSize: 11,
                           color: expert['isOnline'] as bool
                               ? AppColors.online
-                              : AppColors.textHint,
+                              : theme.hintColor,
                         ),
                       ),
                     ],
@@ -278,7 +280,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: isSelected ? AppColors.accent : AppColors.textHint,
+              color: isSelected ? AppColors.accent : theme.hintColor,
               size: 20,
             ),
           ],
@@ -288,14 +290,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildChatDivider() {
+    final theme = Theme.of(context);
     final expert = _experts[_selectedExpert];
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: AppColors.border),
-          bottom: BorderSide(color: AppColors.border),
+          top: BorderSide(color: theme.dividerColor),
+          bottom: BorderSide(color: theme.dividerColor),
         ),
       ),
       child: Row(
@@ -312,11 +316,11 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Text(
                 expert['name'] as String,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               Text(
@@ -326,7 +330,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   fontSize: 11,
                   color: expert['isOnline'] as bool
                       ? AppColors.online
-                      : AppColors.textHint,
+                      : theme.hintColor,
                 ),
               ),
             ],
@@ -337,6 +341,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessages() {
+    final theme = Theme.of(context);
     final expertId = _experts[_selectedExpert]['id'] as String;
     final currentUserId = _authService.currentUser?.uid ?? '';
 
@@ -358,26 +363,26 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Icon(
                   Icons.chat_bubble_outline_rounded,
-                  color: AppColors.textHint,
+                  color: theme.hintColor,
                   size: 40,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Sin mensajes todavía',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Envía un mensaje para empezar',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
-                    color: AppColors.textHint,
+                    color: theme.hintColor,
                   ),
                 ),
               ],
@@ -408,6 +413,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(MessageModel message, bool isSent) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -429,7 +437,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isSent ? AppColors.primary : const Color(0xFFF0F0F0),
+                  color: isSent
+                      ? AppColors.primary
+                      : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0)),
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
                     topRight: const Radius.circular(16),
@@ -442,7 +452,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
-                    color: isSent ? Colors.white : AppColors.textPrimary,
+                    color: isSent ? Colors.white : theme.colorScheme.onSurface,
                     height: 1.5,
                   ),
                 ),
@@ -455,7 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   fontSize: 10,
                   color: isSent
                       ? AppColors.primary.withValues(alpha: 0.6)
-                      : AppColors.textHint,
+                      : theme.hintColor,
                 ),
               ),
             ],
@@ -466,11 +476,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputBar() {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
       child: Row(
         children: [
@@ -478,13 +490,13 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: theme.scaffoldBackgroundColor,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: theme.dividerColor),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.attach_file_rounded,
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurfaceVariant,
               size: 16,
             ),
           ),
@@ -493,26 +505,26 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: theme.scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.borderLight),
+                border: Border.all(color: theme.dividerColor),
               ),
               child: TextField(
                 controller: _messageController,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: theme.colorScheme.onSurface,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Escribe un mensaje...',
                   hintStyle: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
-                    color: AppColors.textHint,
+                    color: theme.hintColor,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),

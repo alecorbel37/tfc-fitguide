@@ -25,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: AppColors.primary,
@@ -33,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;
@@ -142,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         GestureDetector(
-          onTap: () {},
+          onTap: () => _showSettingsSheet(context),
           child: Container(
             width: 34,
             height: 34,
@@ -158,6 +158,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showSettingsSheet(BuildContext context) {
+    final theme = Theme.of(context);
+
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            final isDarkMode = userProvider.themeMode == ThemeMode.dark;
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Indicador del BottomSheet
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.hintColor.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Configuración',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Toggle modo oscuro
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: theme.dividerColor),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: isDarkMode
+                                ? Colors.indigo.withValues(alpha: 0.2)
+                                : const Color(0xFF1E1E1E),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            isDarkMode
+                                ? Icons.light_mode_rounded
+                                : Icons.dark_mode_rounded,
+                            color: isDarkMode ? Colors.amber : Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Modo oscuro',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        Switch(
+                          value: isDarkMode,
+                          onChanged: (_) {
+                            userProvider.toggleTheme();
+                          },
+                          activeTrackColor: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -279,6 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatsGrid(String peso) {
+
     final userProvider = context.read<UserProvider>();
     final imc = userProvider.imc;
     final imcText = imc != null ? imc.toStringAsFixed(1) : '-';
@@ -317,12 +419,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String label,
     required Color valueColor,
   }) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         children: [
@@ -339,10 +443,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10,
-              color: AppColors.textHint,
+              color: theme.hintColor,
             ),
           ),
         ],
@@ -351,25 +455,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProgressCard() {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Evolución del peso',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const Text(
@@ -384,7 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
+          SizedBox(
             height: 80,
             child: Center(
               child: Column(
@@ -392,16 +498,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(
                     Icons.show_chart_rounded,
-                    color: AppColors.textHint,
+                    color: theme.hintColor,
                     size: 28,
                   ),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Sin datos de peso registrados',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
-                      color: AppColors.textHint,
+                      color: theme.hintColor,
                     ),
                   ),
                 ],
@@ -414,32 +520,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildMenuList(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final menuItems = [
       {
         'icon': Icons.person_rounded,
         'label': 'Editar datos personales',
-        'bgColor': AppColors.iconBgGreen,
+        'bgColor': isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen,
         'iconColor': AppColors.primary,
         'isDanger': false,
       },
       {
         'icon': Icons.notifications_rounded,
         'label': 'Notificaciones',
-        'bgColor': AppColors.iconBgOrange,
+        'bgColor': isDark ? AppColors.accent.withValues(alpha: 0.15) : AppColors.iconBgOrange,
         'iconColor': AppColors.accent,
         'isDanger': false,
       },
       {
         'icon': Icons.lock_rounded,
         'label': 'Privacidad y seguridad',
-        'bgColor': AppColors.iconBgGreen,
+        'bgColor': isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen,
         'iconColor': AppColors.primary,
         'isDanger': false,
       },
       {
         'icon': Icons.logout_rounded,
         'label': 'Cerrar sesión',
-        'bgColor': AppColors.iconBgRed,
+        'bgColor': isDark ? AppColors.error.withValues(alpha: 0.15) : AppColors.iconBgRed,
         'iconColor': AppColors.error,
         'isDanger': true,
       },
@@ -457,9 +566,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: theme.dividerColor),
             ),
             child: Row(
               children: [
@@ -486,13 +595,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontWeight: FontWeight.w500,
                       color: item['isDanger'] as bool
                           ? AppColors.error
-                          : AppColors.textPrimary,
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.textHint,
+                  color: theme.hintColor,
                   size: 18,
                 ),
               ],
@@ -504,35 +613,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Cerrar sesión',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
           ),
         ),
-        content: const Text(
+        content: Text(
           '¿Estás segura de que quieres cerrar sesión?',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
-            color: AppColors.textSecondary,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancelar',
               style: TextStyle(
                 fontFamily: 'Poppins',
-                color: AppColors.textSecondary,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),

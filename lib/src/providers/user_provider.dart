@@ -10,6 +10,17 @@ class UserProvider extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
+  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode get themeMode => _themeMode;
+
+  // Para cambiar el tema entre claro y oscuro
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.light
+        ? ThemeMode.dark
+        : ThemeMode.light;
+    notifyListeners();
+  }
+
   // Calculamos el IMC
   double? get imc {
     if (_user == null) return null;

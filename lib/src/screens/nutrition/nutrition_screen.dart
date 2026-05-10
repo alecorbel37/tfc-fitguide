@@ -25,25 +25,21 @@ class _NutritionScreenState extends State<NutritionScreen> {
       'title': 'Desayuno',
       'icon': Icons.wb_sunny_rounded,
       'iconColor': AppColors.accent,
-      'iconBg': AppColors.iconBgOrange,
     },
     {
       'title': 'Almuerzo',
       'icon': Icons.lunch_dining_rounded,
       'iconColor': AppColors.primary,
-      'iconBg': AppColors.iconBgGreen,
     },
     {
       'title': 'Cena',
       'icon': Icons.nightlight_round,
       'iconColor': AppColors.primary,
-      'iconBg': AppColors.iconBgGreen,
     },
     {
       'title': 'Snacks',
       'icon': Icons.cookie_rounded,
       'iconColor': AppColors.accent,
-      'iconBg': AppColors.iconBgOrange,
     },
   ];
 
@@ -129,6 +125,14 @@ class _NutritionScreenState extends State<NutritionScreen> {
 
   double get _totalCarbs => _mealLogs.fold(0, (sum, log) => sum + log.carbs);
 
+  Color _getIconBg(Color iconColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (iconColor == AppColors.accent) {
+      return isDark ? AppColors.accent.withValues(alpha: 0.15) : AppColors.iconBgOrange;
+    }
+    return isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.iconBgGreen;
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -139,7 +143,6 @@ class _NutritionScreenState extends State<NutritionScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHero(),
@@ -158,7 +161,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                             title: meal['title'] as String,
                             icon: meal['icon'] as IconData,
                             iconColor: meal['iconColor'] as Color,
-                            iconBg: meal['iconBg'] as Color,
+                            iconBg: _getIconBg(meal['iconColor'] as Color),
                             items: _getLogsForMeal(meal['title'] as String),
                           ),
                         );
@@ -355,13 +358,14 @@ class _NutritionScreenState extends State<NutritionScreen> {
     required Color iconBg,
     required List<MealLogModel> items,
   }) {
+    final theme = Theme.of(context);
     final mealCalories = items.fold(0.0, (sum, log) => sum + log.calories);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         children: [
@@ -385,6 +389,8 @@ class _NutritionScreenState extends State<NutritionScreen> {
     required Color iconBg,
     required double kcal,
   }) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -405,11 +411,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 Text(
@@ -420,8 +426,8 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     fontFamily: 'Poppins',
                     fontSize: 11,
                     color: kcal > 0
-                        ? AppColors.textSecondary
-                        : AppColors.textHint,
+                        ? theme.colorScheme.onSurfaceVariant
+                        : theme.hintColor,
                   ),
                 ),
               ],
@@ -479,10 +485,12 @@ class _NutritionScreenState extends State<NutritionScreen> {
   }
 
   Widget _buildFoodItem(MealLogModel item) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF5F5F5))),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -493,11 +501,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
               children: [
                 Text(
                   item.foodName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF374151),
+                    color: theme.colorScheme.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -505,10 +513,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 const SizedBox(height: 2),
                 Text(
                   '${item.quantity.toStringAsFixed(0)}g · ${item.protein.toStringAsFixed(1)}g prot · ${item.carbs.toStringAsFixed(1)}g carbos',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
-                    color: AppColors.textHint,
+                    color: theme.hintColor,
                   ),
                 ),
               ],
@@ -530,9 +538,9 @@ class _NutritionScreenState extends State<NutritionScreen> {
               await _nutritionService.deleteMealLog(item.id);
               await _loadMealLogs();
             },
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
-              color: AppColors.textHint,
+              color: theme.hintColor,
               size: 16,
             ),
           ),

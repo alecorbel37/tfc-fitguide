@@ -8,10 +8,13 @@ import 'src/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => UserProvider(),
+      child: const FitGuideApp(),
+    ),
   );
-  runApp(const FitGuideApp());
 }
 
 class FitGuideApp extends StatelessWidget {
@@ -19,15 +22,18 @@ class FitGuideApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => UserProvider(),
-      child: MaterialApp(
-        title: 'FitGuide',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.splash,
-        routes: AppRoutes.routes,
-      ),
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        return MaterialApp(
+          title: 'FitGuide',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: userProvider.themeMode,
+          initialRoute: AppRoutes.splash,
+          routes: AppRoutes.routes,
+        );
+      },
     );
   }
 }
