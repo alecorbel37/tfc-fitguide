@@ -279,6 +279,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatsGrid(String peso) {
+    final userProvider = context.read<UserProvider>();
+    final imc = userProvider.imc;
+    final imcText = imc != null ? imc.toStringAsFixed(1) : '-';
+
     return Row(
       children: [
         Expanded(
@@ -291,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildStatCard(
-            value: '0',
+            value: '5',
             label: 'Racha de días',
             valueColor: AppColors.accent,
           ),
@@ -299,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildStatCard(
-            value: '-',
+            value: imcText,
             label: 'IMC actual',
             valueColor: AppColors.primary,
           ),

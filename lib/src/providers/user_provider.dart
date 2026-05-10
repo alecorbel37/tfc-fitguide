@@ -10,6 +10,13 @@ class UserProvider extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
+  // Calculamos el IMC
+  double? get imc {
+    if (_user == null) return null;
+    final alturaM = _user!.altura / 100;
+    return _user!.peso / (alturaM * alturaM);
+  }
+
   // Cargamos los datos del usuario desde Firestore
   Future<void> loadUser() async {
     try {
