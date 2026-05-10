@@ -209,14 +209,9 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border(
-            left: BorderSide(
-              color: isSelected ? AppColors.accent : Colors.transparent,
-              width: 3,
-            ),
-            top: BorderSide(color: AppColors.border),
-            right: BorderSide(color: AppColors.border),
-            bottom: BorderSide(color: AppColors.border),
+          border: Border.all(
+            color: isSelected ? AppColors.accent : AppColors.border,
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
@@ -241,7 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 2),
                   Text(
                     '${expert['role']} · ${expert['college']}',
                     style: const TextStyle(
@@ -250,8 +245,41 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: expert['isOnline'] as bool
+                              ? AppColors.online
+                              : AppColors.textHint,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        expert['isOnline'] as bool
+                            ? 'En línea'
+                            : 'Desconectado',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: expert['isOnline'] as bool
+                              ? AppColors.online
+                              : AppColors.textHint,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: isSelected ? AppColors.accent : AppColors.textHint,
+              size: 20,
             ),
           ],
         ),
