@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 4), () { // Tiempo que dura la Splash Screen
+    Future.delayed(const Duration(seconds: 3, milliseconds: 500), () { // Tiempo que dura la Splash Screen
       if (mounted) {
         final authService = AuthService();
         if (authService.currentUser != null) {
@@ -54,7 +54,12 @@ class _SplashScreenState extends State<SplashScreen>
           userService.getUser(authService.currentUser!.uid).then((userProfile) {
             if (mounted) {
               if (userProfile != null) {
-                Navigator.pushReplacementNamed(context, AppRoutes.home);
+                // Comprobamos si el email está verificado antes de ir a Home
+                if (!authService.isEmailVerified) {
+                  Navigator.pushReplacementNamed(context, AppRoutes.login);
+                } else {
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                }
               } else {
                 // Si está autenticado pero no tiene perfil (ej. cerró la app tras login Google)
                 Navigator.pushReplacementNamed(

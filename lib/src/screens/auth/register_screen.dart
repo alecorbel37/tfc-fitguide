@@ -110,7 +110,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        // Redirigimos al Login en lugar de al Home para que tenga que verificar el email
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
     } catch (e) {
       if (mounted) {

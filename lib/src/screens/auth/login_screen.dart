@@ -20,6 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Si el usuario llega aquí y ya está logeado pero no verificado, mostramos el diálogo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = AuthService();
+      if (authService.currentUser != null && !authService.isEmailVerified) {
+        _showVerificationDialog();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -35,6 +47,14 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        await authService.reloadUser();
+        if (!authService.isEmailVerified) {
+          if (mounted) {
+            setState(() => _isLoading = false);
+            _showVerificationDialog();
+          }
+          return;
+        }
         if (mounted) {
           Navigator.pushReplacementNamed(context, AppRoutes.home);
         }
@@ -42,10 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                e.toString(),
-                style: const TextStyle(fontFamily: 'Poppins'),
-              ),
+              content: Text(e.toString()),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -58,6 +75,119 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _showVerificationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Verifica tu correo',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: const Text(
+          'Hemos enviado un correo de verificación a tu email. Por favor verifica tu cuenta antes de continuar.',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final authService = AuthService();
+              await authService.login(
+                email: _emailController.text.trim(),
+                password: _passwordController.text.trim(),
+              );
+              await authService.sendEmailVerification();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Correo de verificación reenviado',
+                      style: TextStyle(fontFamily: 'Poppins'),
+                    ),
+                    backgroundColor: AppColors.primary,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Reenviar correo',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final authService = AuthService();
+              await authService.reloadUser(); // Actualizamos el estado desde el servidor
+              if (authService.isEmailVerified) { // Comprobamos si el email está verificado
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                }
+              } else {
+                if (context.mounted) { // Si intentas continuar sin verificar, mostramos un mensaje de error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                        'Todavía no has verificado tu correo',
+                        style: TextStyle(fontFamily: 'Poppins'),
+                      ),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              'Ya lo verifiqué',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final authService = AuthService();
+              await authService.logout();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: AppColors.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -380,15 +510,15 @@ class _LoginScreenState extends State<LoginScreen> {
             if (result != null && context.mounted) {
               final userService = UserService();
               final userProfile = await userService.getUser(result.user!.uid);
-              
+
               if (mounted) {
                 if (userProfile != null) {
                   Navigator.pushReplacementNamed(context, AppRoutes.home);
                 } else {
                   Navigator.pushNamed(
-                    context, 
-                    AppRoutes.register, 
-                    arguments: result.user
+                    context,
+                    AppRoutes.register,
+                    arguments: result.user,
                   );
                 }
               }

@@ -3,11 +3,20 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool get isEmailVerified => _auth.currentUser?.emailVerified ?? false;
 
   Stream<User?> get authStateChanges =>
       _auth.authStateChanges(); // Para escuchar los cambios de la sesión
 
   User? get currentUser => _auth.currentUser;
+
+  Future<void> reloadUser() async { // Comprobamos si el email está verificado
+    await _auth.currentUser?.reload();
+  }
+
+  Future<void> sendEmailVerification() async {
+    await _auth.currentUser?.sendEmailVerification();
+  }
 
   Future<UserCredential?> register({
     required String email,
@@ -18,6 +27,7 @@ class AuthService {
         email: email,
         password: password,
       );
+      await credential.user?.sendEmailVerification(); // Para verificar email
       return credential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
