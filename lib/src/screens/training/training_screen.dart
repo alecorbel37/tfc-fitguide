@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:tfc_fitguide/src/widgets/bottom_nav_bar.dart';
 import '../../../constants/app_colors.dart';
 import '../../providers/user_provider.dart';
+import '../../services/training_service.dart';
 import 'package:provider/provider.dart';
 
 class TrainingScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class TrainingScreen extends StatefulWidget {
 
 class _TrainingScreenState extends State<TrainingScreen> {
   int _selectedFilter = 0;
+  final TrainingService _trainingService = TrainingService();
 
   final List<String> _filters = [
     'Todos',
@@ -22,88 +24,19 @@ class _TrainingScreenState extends State<TrainingScreen> {
     'Movilidad y Flexibilidad',
   ];
 
-  final List<Map<String, dynamic>> _routines = [
-    {
-      'name': 'Fuerza Tren Superior',
-      'desc': 'Pecho, espalda y hombros',
-      'duration': 45,
-      'exercises': 8,
-      'level': 'Intermedio',
-      'muscles': ['Pecho', 'Espalda', 'Hombros', 'Tríceps'],
-      'category': 'Fuerza',
-      'isToday': true,
-    },
-    {
-      'name': 'Fuerza Tren Inferior',
-      'desc': 'Cuádriceps, isquios y glúteos',
-      'duration': 40,
-      'exercises': 6,
-      'level': 'Intermedio',
-      'muscles': ['Cuádriceps', 'Glúteos'],
-      'category': 'Fuerza',
-      'isToday': false,
-    },
-    {
-      'name': 'Full Body Funcional',
-      'desc': 'Cuerpo completo funcional',
-      'duration': 55,
-      'exercises': 10,
-      'level': 'Avanzado',
-      'muscles': ['Cuerpo completo'],
-      'category': 'Fuerza',
-      'isToday': false,
-    },
-    {
-      'name': 'Cardio HIIT',
-      'desc': 'Intervalos de alta intensidad',
-      'duration': 30,
-      'exercises': 8,
-      'level': 'Principiante',
-      'muscles': ['Cardio', 'Core'],
-      'category': 'Cardio',
-      'isToday': false,
-    },
-    {
-      'name': 'Movilidad y Flexibilidad',
-      'desc': 'Mejora tu rango de movimiento',
-      'duration': 25,
-      'exercises': 10,
-      'level': 'Principiante',
-      'muscles': ['Cuerpo completo'],
-      'category': 'Movilidad y Flexibilidad',
-      'isToday': false,
-    },
-  ];
-
   List<Map<String, dynamic>> get _filteredRoutines {
-    if (_selectedFilter == 0) return _routines;
-    return _routines
+    final routines = _trainingService.getAllRoutines();
+    if (_selectedFilter == 0) return routines;
+    return routines
         .where((r) => r['category'] == _filters[_selectedFilter])
         .toList();
-  }
-
-  // Para que la rutina de hoy dependa del objetivo del usuario
-  Map<String, dynamic> _getTodayRoutine(String? objetivo) {
-    switch (objetivo) {
-      case 'Perder peso':
-        return _routines.firstWhere((r) => r['category'] == 'Cardio');
-      case 'Ganar masa muscular':
-        return _routines.firstWhere((r) => r['category'] == 'Fuerza');
-      case 'Mejorar la salud':
-        return _routines.firstWhere(
-          (r) => r['category'] == 'Movilidad y Flexibilidad',
-          orElse: () => _routines.first,
-        );
-      default:
-        return _routines.first;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
     final objetivo = userProvider.user?.objetivo;
-    final todayRoutine = _getTodayRoutine(objetivo);
+    final todayRoutine = _trainingService.getTodayRoutine(objetivo);
 
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -129,7 +62,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   _buildSectionHeader('Otras rutinas', null),
                   const SizedBox(height: 10),
                   ..._filteredRoutines
-                      .where((r) => r['isToday'] == false)
+                      .where((r) => r['name'] != todayRoutine['name'])
                       .map((r) => _buildRoutineCard(r)),
                 ],
               ),

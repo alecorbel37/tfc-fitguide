@@ -5,6 +5,7 @@ import '../../../constants/app_colors.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../providers/user_provider.dart';
 import '../../services/nutrition_service.dart';
+import '../../services/training_service.dart';
 import '../../models/meal_log_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<MealLogModel> _todayLogs = [];
   final NutritionService _nutritionService = NutritionService();
+  final TrainingService _trainingService = TrainingService();
 
   @override
   void initState() {
@@ -465,6 +467,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTodayWorkout() {
     final theme = Theme.of(context);
+    final userProvider = context.watch<UserProvider>();
+    final objetivo = userProvider.user?.objetivo;
+    final todayRoutine = _trainingService.getTodayRoutine(objetivo);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -493,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Fuerza Tren Superior',
+                      todayRoutine['name'] as String,
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 15,
@@ -503,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '45 min · 8 ejercicios',
+                      '${todayRoutine['duration']} min · ${todayRoutine['exercises']} ejercicios',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
@@ -534,9 +539,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Text(
-                            'Intermedio',
-                            style: TextStyle(
+                          Text(
+                            todayRoutine['level'] as String,
+                            style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
