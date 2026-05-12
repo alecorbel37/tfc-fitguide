@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"fitguide-tfc","appId":"1:809867489398:android:b073386262e50ce17c6f57","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"fitguide-tfc","configurations":{"android":"1:809867489398:android:b073386262e50ce17c6f57","ios":"1:809867489398:ios:a5803c4e2f62b21f7c6f57","macos":"1:809867489398:ios:a5803c4e2f62b21f7c6f57","web":"1:809867489398:web:f1d9ab0108dc21f17c6f57","windows":"1:809867489398:web:7fd1d792e90a2cad7c6f57"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fitguide-tfc",
+          "appId": "1:809867489398:android:b073386262e50ce17c6f57",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fitguide-tfc",
+          "configurations": {
+            "android": "1:809867489398:android:b073386262e50ce17c6f57",
+            "ios": "1:809867489398:ios:a5803c4e2f62b21f7c6f57",
+            "macos": "1:809867489398:ios:a5803c4e2f62b21f7c6f57",
+            "web": "1:809867489398:web:f1d9ab0108dc21f17c6f57",
+            "windows": "1:809867489398:web:7fd1d792e90a2cad7c6f57"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
